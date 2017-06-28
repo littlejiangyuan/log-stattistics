@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="inter.ISloadOperation">
+
+    <insert id="addSloadRecord" parameterType="SloadModel" >
+        insert into uve_sload_report set feeds_num=#{feedsNum},available_pos=#{availablePos},
+        unread_status=#{unreadStatus},
+        service_name=#{serviceName},
+        sload_year=#{year},
+        sload_month=#{month},
+        sload_day=#{day},
+        sload_hour=#{hour},
+        sload_min=#{min}
+        on duplicate key update feeds_num=feeds_num+#{feedsNum},
+        available_pos=available_pos+#{availablePos},
+        unread_status=unread_status+#{unreadStatus}
+    </insert>
+</mapper>
