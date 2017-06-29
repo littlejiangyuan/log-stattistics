@@ -9,7 +9,6 @@ public class SloadMonitor {
 
     public static void main(String[] args) {
 
-
         FileLoad sload = new FileLoad();
         sload.load(true);
 
@@ -18,6 +17,7 @@ public class SloadMonitor {
         } catch(Exception e) {
 
         }
+
 
 
 

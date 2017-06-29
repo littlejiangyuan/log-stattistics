@@ -1,6 +1,8 @@
 package load;
 
 import org.joda.time.DateTime;
+import parse.StringParse;
+import parse.Result;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
@@ -14,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.Arrays;
+import java.util.Date;
 
 
 
@@ -28,7 +31,13 @@ public class FileLoad {
     private static final int FILE_NUM = 1;
     private static final int DELIMITER_ASCII = 10; //换行符
 
-    public void Fileload() {
+    private long runSec = 0; //运行时的时间戳，用来每隔一段时间将数据刷新到mysql
+
+    private MemoryStorage memory =  new MemoryStorage();
+
+    private int lineNum = 0;
+
+    public FileLoad() {
 
     }
 
@@ -37,6 +46,8 @@ public class FileLoad {
      */
     public  boolean load ( boolean first) {
         DateTime dateTime = new DateTime();
+        runSec = new Date().getTime()/1000;
+
         int hour = dateTime.getHourOfDay();
         String date = dateTime.toString("yyyy-MM-dd");
         Path startingDir = Paths.get( "/data0/nginx/logs/uve_core/stats/" + date + "/" + String.format("%02d", hour));
@@ -69,7 +80,7 @@ public class FileLoad {
                     node.getBf().clear();
                     node.setCnt(null);
                     node.setOffset(0);
-                    if (first && true) {
+                    if (!first && true) {
                         long size = channel.size();//获取通道文件大小
                         if (size > 1000) {
                             size = size - 1000;
@@ -120,7 +131,7 @@ public class FileLoad {
                         cnt = node.getCnt().get();
                         if (cnt > 0) {
                             handle(node);
-                        } else if (!node.isHasReadEOF()) {
+                        } else if (!node.isHasReadEOF()) { //设置为文件已经读完
                             if (check(node.getCurTime())) {
                                 count = count + 1;
                                 node.setHasReadEOF(true);
@@ -155,6 +166,7 @@ public class FileLoad {
             break;
         }
         curTime = curTime + HOUR;
+        System.out.println("处理完当前目录");
         load( false);
         return true;
     }
@@ -168,14 +180,24 @@ public class FileLoad {
         for (int i = 0; i < limit; i++) {
             byte c = bf.get(i);
             if (c == DELIMITER_ASCII) {
+                System.out.println("处理完一行" + lineNum++);
                 int length = (i + 1) - index;
                 if (length != 0) {
                     byte[] dst = new byte[length - 1];
                     bf.get(dst, 0, length - 1);
                     bf.get();
 
-                    String t = new String(dst);
-                    System.out.println(t);
+                    //String t = new String(dst);
+                    StringParse sp = new StringParse(new String(dst));
+                    Result rs = sp.parsing();
+                    memory.add( rs);
+
+                    long now = new Date().getTime()/1000;
+
+                    if( now - runSec > 5 ) { //刷新到数据库
+                        memory.flushToDb();
+                        runSec = now;
+                    }
 
                     dst = null;
                 }
@@ -190,6 +212,7 @@ public class FileLoad {
         bf.put(fdst);
         node.setOffset(node.getOffset() + limit - node.getLastFinalLength());
         node.setLastFinalLength(finallength);
+
 
     }
 
