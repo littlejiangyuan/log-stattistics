@@ -53,6 +53,7 @@ public class FileLoad {
         Path startingDir = Paths.get( "/data0/nginx/logs/uve_core/stats/" + date + "/" + String.format("%02d", hour));
         boolean exist = false;
 
+        //判断目录是否存在
         while (!exist) {
             exist = Files.exists(startingDir, LinkOption.NOFOLLOW_LINKS);
             if (!exist) {
@@ -67,7 +68,6 @@ public class FileLoad {
         }
 
         exist = false;
-
         while (!exist) {
             List<Path> result = new LinkedList<Path>();
             try {
@@ -80,6 +80,8 @@ public class FileLoad {
                     node.getBf().clear();
                     node.setCnt(null);
                     node.setOffset(0);
+
+                    /*
                     if (!first && true) {
                         long size = channel.size();//获取通道文件大小
                         if (size > 1000) {
@@ -87,6 +89,8 @@ public class FileLoad {
                         }
                         node.setOffset(size);
                     }
+                    */
+
                     node.setCurTime(dateTime.getMillis());
                     this.map.put(channel, node);
                     System.out.println("load file successs:" + p.toAbsolutePath() + " with offset:" + node.getOffset());
@@ -96,7 +100,7 @@ public class FileLoad {
 
             }
 
-            if (result.size() == FILE_NUM) {
+            if (result.size() >= FILE_NUM) {
                 exist = true;
             } else {
                 try {
@@ -114,11 +118,13 @@ public class FileLoad {
 
     public void process() throws IOException, ExecutionException{
         while (true) {
-            int count = 0;
+            int count = 0; //用来标识当前目录已经处理完的文件数量
             while (true) {
+
                 if (Thread.interrupted()) {
                     return;
                 }
+
 
                 for (Entry<AsynchronousFileChannel, FileNode> entry : this.map.entrySet()) {
                     Future<Integer> f = entry.getKey().read(entry.getValue().getBf(), entry.getValue().getOffset());
@@ -143,7 +149,7 @@ public class FileLoad {
                     }
                 }
 
-                if (count == FILE_NUM) {
+                if (count >= FILE_NUM) {
                     for (AsynchronousFileChannel channel : this.map.keySet()) {
                         channel.close();
                     }
@@ -151,10 +157,14 @@ public class FileLoad {
                 }
             }
 
+            this.map.clear();
+
             if (!loadNext()) {
                 System.out.println("load next dir error!");
                 break;
             }
+
+
         }
         System.out.println("exit the thread!");
     }
@@ -225,6 +235,7 @@ public class FileLoad {
         } else {
             return checkFile(curTime);
         }
+
     }
 
     public boolean checkFile(long l) throws InterruptedException {
@@ -238,7 +249,7 @@ public class FileLoad {
             try {
                 List<Path> result = new LinkedList<Path>();
                 Files.walkFileTree(startingDir, new FindJavaVisitor(result, "-stats.log"));
-                if (result.size() == FILE_NUM) {
+                if (result.size() >= FILE_NUM) {
                     return true;
                 }
             } catch (IOException e) {

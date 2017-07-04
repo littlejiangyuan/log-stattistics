@@ -27,7 +27,7 @@ public class SloadMonitor {
         try {
             sload.process();
         } catch(Exception e) {
-
+            System.out.println(e.getMessage());
         }
 
     }

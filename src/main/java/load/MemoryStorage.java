@@ -32,5 +32,6 @@ public class MemoryStorage {
             ms.storage();
 
         }
+        //清空
     }
 }
