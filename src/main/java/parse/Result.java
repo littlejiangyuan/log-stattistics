@@ -17,6 +17,7 @@ public class Result {
     private String dateTime = "";
 
 
+
     public  Result() {
 
     }
@@ -35,7 +36,9 @@ public class Result {
 
     public Result setDateTime() {
         Date date = new Date(requestTime * 1000 );
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+        //SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
         dateTime = formatter.format(date);
 
         return this;
