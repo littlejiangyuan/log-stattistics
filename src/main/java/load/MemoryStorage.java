@@ -25,13 +25,17 @@ public class MemoryStorage {
     }
 
     public void flushToDb() {
-        int a = 0;
         for (Entry<String, Result> entry : map.entrySet()) {
             Result s = entry.getValue();
             MysqlStorage ms = new MysqlStorage(s);
             ms.storage();
-
         }
+
         //清空
+        map.clear();
+    }
+
+    public int getItemsCount() {
+        return map.size();
     }
 }

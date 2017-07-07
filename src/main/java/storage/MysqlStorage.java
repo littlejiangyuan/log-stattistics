@@ -57,6 +57,7 @@ public class MysqlStorage {
         SqlSession session = sqlSessionFactory.openSession();
 
         try {
+            //System.out.println("数据库插入");
             ISloadOperation si = session.getMapper(ISloadOperation.class);
             si.addSloadRecord(model);
             session.commit();

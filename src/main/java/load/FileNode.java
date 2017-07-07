@@ -44,17 +44,6 @@ public class FileNode {
         this.cnt = cnt;
     }
 
-    public static void main(String[] args) {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        countDownLatch.countDown();
-        try {
-            countDownLatch.await();
-            System.out.println("hello world");
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
 
     public long getLastFinalLength() {
         return lastFinalLength;
